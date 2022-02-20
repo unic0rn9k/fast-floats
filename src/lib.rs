@@ -1,3 +1,11 @@
+//! # Fast Floats
+//! This project is forked from [bluss/fast-floats](https://github.com/bluss/fast-floats).
+//!
+//! # Changes from original project
+//! - Fast floats implement deref to their source float type
+//!
+//! # Original docs
+//!
 //! Experimental (unstable) “fast-math” wrappers for f32, f64
 //!
 //! These wrappers enable the [“fast-math”][1] flags for the operations
@@ -19,18 +27,9 @@
 
 extern crate core as std;
 
-use std::intrinsics::{fadd_fast, fsub_fast, fmul_fast, fdiv_fast, frem_fast};
+use std::intrinsics::{fadd_fast, fdiv_fast, fmul_fast, frem_fast, fsub_fast};
 use std::ops::{
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Rem,
-    AddAssign,
-    SubAssign,
-    MulAssign,
-    DivAssign,
-    RemAssign,
+    Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign,
 };
 
 /// “fast-math” wrapper for f32 and f64.
@@ -40,6 +39,20 @@ use std::ops::{
 #[derive(Copy, Clone, PartialEq, PartialOrd)]
 #[repr(transparent)]
 pub struct Fast<F>(F);
+
+impl<F> Deref for Fast<F> {
+    type Target = F;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<F> DerefMut for Fast<F> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 /// “fast-math” wrapper for `f64`
 pub type FF64 = Fast<f64>;
@@ -57,18 +70,26 @@ impl<F> Fast<F> {
     ///
     /// Be wary of operations creating invalid values in `Fast` which they could potentially do
     /// depending on the operation.
-    pub unsafe fn new(value: F) -> Self { Fast(value) }
+    pub unsafe fn new(value: F) -> Self {
+        Fast(value)
+    }
 
     /// Get the inner value
-    pub fn get(self) -> F { self.0 }
+    pub fn get(self) -> F {
+        self.0
+    }
 }
 
 impl Into<f32> for Fast<f32> {
-    fn into(self: Self) -> f32 { self.get() }
+    fn into(self: Self) -> f32 {
+        self.get()
+    }
 }
 
 impl Into<f64> for Fast<f64> {
-    fn into(self: Self) -> f64 { self.get() }
+    fn into(self: Self) -> f64 {
+        self.get()
+    }
 }
 
 macro_rules! impl_op {
@@ -180,7 +201,6 @@ macro_rules! impl_format {
 
 impl_format!(Debug Display LowerExp UpperExp);
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -217,5 +237,11 @@ mod tests {
             2. /= 2. is 1.;
             5. %= 2. is 1.;
         );
+    }
+
+    #[test]
+    fn deref() {
+        let a = unsafe { FF32::new(2.) };
+        assert_eq!(a.sin(), 2f32.sin())
     }
 }
