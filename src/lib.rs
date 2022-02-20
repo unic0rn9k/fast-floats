@@ -1,10 +1,11 @@
 //! # Fast Floats
 //! This project is forked from [bluss/fast-floats](https://github.com/bluss/fast-floats).
 //!
-//! # Changes from original project
+//! **Changes from original project:**
 //! - Fast floats implement deref to their source float type
 //!
 //! # Original docs
+//! [Docs for `Fast` struct ](https://docs.rs/fast-floats/latest/fast_floats/struct.Fast.html)
 //!
 //! Experimental (unstable) “fast-math” wrappers for f32, f64
 //!
