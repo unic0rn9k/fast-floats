@@ -24,7 +24,7 @@
 //! This crate is nightly only and experimental. Breaking changes can occur at
 //! any time, if changes in Rust require it.
 #![no_std]
-#![feature(core_intrinsics)]
+#![feature(core_intrinsics, const_trait_impl)]
 
 extern crate core as std;
 
@@ -41,7 +41,7 @@ use std::ops::{
 #[repr(transparent)]
 pub struct Fast<F>(F);
 
-impl<F> Deref for Fast<F> {
+impl<F> const Deref for Fast<F> {
     type Target = F;
 
     #[inline(always)]
@@ -57,6 +57,8 @@ impl<F> DerefMut for Fast<F> {
     }
 }
 
+/// This is actually a bad idea, but is required for my use cases.
+/// Creating a Fast float should be unsafe - as fast floats use `core_intrinsics`.
 impl<F> From<F> for Fast<F> {
     #[inline(always)]
     fn from(f: F) -> Self {
@@ -80,13 +82,8 @@ impl<F> Fast<F> {
     ///
     /// Be wary of operations creating invalid values in `Fast` which they could potentially do
     /// depending on the operation.
-    pub unsafe fn new(value: F) -> Self {
+    pub const unsafe fn new(value: F) -> Self {
         Fast(value)
-    }
-
-    /// Get the inner value
-    pub fn get(self) -> F {
-        self.0
     }
 }
 
@@ -241,5 +238,14 @@ mod tests {
     fn deref() {
         let a = unsafe { FF32::new(2.) };
         assert_eq!(a.sin(), 2f32.sin())
+    }
+
+    #[test]
+    fn conversion() {
+        let f = |_: FF32| {};
+        f(0f32.into());
+
+        let f = |_: f32| {};
+        unsafe { f(*FF32::new(0.)) };
     }
 }
