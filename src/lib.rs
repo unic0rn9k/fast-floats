@@ -44,14 +44,23 @@ pub struct Fast<F>(F);
 impl<F> Deref for Fast<F> {
     type Target = F;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
 impl<F> DerefMut for Fast<F> {
+    #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+impl<F> From<F> for Fast<F> {
+    #[inline(always)]
+    fn from(f: F) -> Self {
+        Self(f)
     }
 }
 
@@ -78,18 +87,6 @@ impl<F> Fast<F> {
     /// Get the inner value
     pub fn get(self) -> F {
         self.0
-    }
-}
-
-impl Into<f32> for Fast<f32> {
-    fn into(self: Self) -> f32 {
-        self.get()
-    }
-}
-
-impl Into<f64> for Fast<f64> {
-    fn into(self: Self) -> f64 {
-        self.get()
     }
 }
 
